@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Aksara</title>
+    <link rel="stylesheet" href="belajar.css">
+</head>
+<body>
+    <main class="page-shell">
+        <header class="app-header">
+            <a class="back-btn" href="index.html">&#8592; Mulang</a>
+            <div class="title-block">
+                <p class="eyebrow">Main sambil mulang</p>
+                <h1>Kuis Aksara Lampung</h1>
+                <p class="subtitle">Pilih jawaban sai pas, kumpul bintang belajar.</p>
+            </div>
+        </header>
+
+        <section class="panel quiz-card">
+            <div class="mode-tabs">
+                <button class="mode-btn active" data-mode="bunyi">Tebak Bunyi</button>
+                <button class="mode-btn" data-mode="aksara">Tebak Aksara</button>
+                <button class="mode-btn" data-mode="cepat">Tantangan Cepat</button>
+            </div>
+            <div class="score-row">
+                <span id="progress">Soal 1/19</span>
+                <span id="score">Skor 0</span>
+            </div>
+            <div class="question-symbol" id="questionSymbol">Ka</div>
+            <p class="feedback" id="questionText">Aksara hinji dibaca api?</p>
+            <div class="choices" id="choices"></div>
+            <div class="badge-row">
+                <div class="badge"><strong id="bestScore">0</strong>Skor Paling Balak</div>
+                <div class="badge"><strong id="comboText">0</strong>Runtun Bener</div>
+                <div class="badge"><strong id="timerText">-</strong>Waktu</div>
+            </div>
+            <div class="controls">
+                <button class="primary-btn" id="nextQuestion">Teras</button>
+                <button class="ghost-btn" id="restartQuiz">Ulangi</button>
+                <button class="ghost-btn" id="speakQuestion">Dengi Soal</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const bank = [
+            { symbol: 'Ka', answer: 'Ka' },
+            { symbol: 'Ga', answer: 'Ga' },
+            { symbol: 'Nga', answer: 'Nga' },
+            { symbol: 'Pa', answer: 'Pa' },
+            { symbol: 'Ba', answer: 'Ba' },
+            { symbol: 'Ma', answer: 'Ma' },
+            { symbol: 'Ta', answer: 'Ta' },
+            { symbol: 'Da', answer: 'Da' },
+            { symbol: 'Na', answer: 'Na' },
+            { symbol: 'Ca', answer: 'Ca' },
+            { symbol: 'Ja', answer: 'Ja' },
+            { symbol: 'Nya', answer: 'Nya' },
+            { symbol: 'Ya', answer: 'Ya' },
+            { symbol: 'La', answer: 'La' },
+            { symbol: 'Ra', answer: 'Ra' },
+            { symbol: 'Sa', answer: 'Sa' },
+            { symbol: 'Wa', answer: 'Wa' },
+            { symbol: 'Ha', answer: 'Ha' }
+        ];
+
+        let current = 0;
+        let score = 0;
+        let best = Number(localStorage.getItem('skorAksaraLampung') || 0);
+        let combo = 0;
+        let answered = false;
+        let mode = 'bunyi';
+        let timeLeft = 10;
+        let clock = null;
+
+        function speak(text) {
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'id-ID';
+            utterance.rate = 0.85;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function optionsFor(answer) {
+            const pool = bank.map(item => item.answer).filter(item => item !== answer);
+            const picks = pool.sort(() => Math.random() - 0.5).slice(0, 3).concat(answer);
+            return picks.sort(() => Math.random() - 0.5);
+        }
+
+        function startTimer() {
+            clearInterval(clock);
+            if (mode !== 'cepat') {
+                document.getElementById('timerText').textContent = '-';
+                return;
+            }
+            timeLeft = 10;
+            document.getElementById('timerText').textContent = timeLeft;
+            clock = setInterval(() => {
+                timeLeft -= 1;
+                document.getElementById('timerText').textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(clock);
+                    answered = true;
+                    combo = 0;
+                    document.getElementById('questionText').textContent = 'Waktu habis. Teras soal lagi.';
+                    document.getElementById('comboText').textContent = combo;
+                }
+            }, 1000);
+        }
+
+        function render() {
+            const item = bank[current];
+            answered = false;
+            document.getElementById('progress').textContent = `Soal ${current + 1}/${bank.length}`;
+            document.getElementById('score').textContent = `Skor ${score}`;
+            document.getElementById('bestScore').textContent = best;
+            document.getElementById('comboText').textContent = combo;
+
+            if (mode === 'aksara') {
+                document.getElementById('questionSymbol').textContent = item.answer;
+                document.getElementById('questionText').textContent = 'Pilih aksara sai cocok jama bunyi hinji.';
+                document.getElementById('choices').innerHTML = optionsFor(item.answer).map(option =>
+                    `<button class="choice-btn" data-answer="${option}">${bank.find(row => row.answer === option).symbol}</button>`
+                ).join('');
+            } else {
+                document.getElementById('questionSymbol').textContent = item.symbol;
+                document.getElementById('questionText').textContent = mode === 'cepat' ? 'Cepat pilih bunyi sai pas!' : 'Aksara hinji dibaca api?';
+                document.getElementById('choices').innerHTML = optionsFor(item.answer).map(option =>
+                    `<button class="choice-btn" data-answer="${option}">${option}</button>`
+                ).join('');
+            }
+            startTimer();
+        }
+
+        document.getElementById('choices').addEventListener('click', event => {
+            const button = event.target.closest('button');
+            if (!button || answered) return;
+            answered = true;
+            clearInterval(clock);
+            const item = bank[current];
+            const correct = button.dataset.answer === item.answer;
+            if (correct) {
+                combo += 1;
+                score += mode === 'cepat' ? 15 + timeLeft : 10 + combo;
+                button.classList.add('correct');
+                document.getElementById('questionText').textContent = 'Iya, jawabanmu bener!';
+            } else {
+                combo = 0;
+                button.classList.add('wrong');
+                document.getElementById('questionText').textContent = `Belum pas. Jawaban sai bener: ${item.answer}`;
+                document.querySelectorAll('.choice-btn').forEach(btn => {
+                    if (btn.dataset.answer === item.answer) btn.classList.add('correct');
+                });
+            }
+            if (score > best) {
+                best = score;
+                localStorage.setItem('skorAksaraLampung', best);
+            }
+            document.getElementById('score').textContent = `Skor ${score}`;
+            document.getElementById('bestScore').textContent = best;
+            document.getElementById('comboText').textContent = combo;
+        });
+
+        document.getElementById('nextQuestion').addEventListener('click', () => {
+            if (current === bank.length - 1) {
+                const star = score >= 180 ? 'Tiga bintang' : score >= 100 ? 'Dua bintang' : 'Siji bintang';
+                document.getElementById('questionSymbol').textContent = '\u2605';
+                document.getElementById('questionText').textContent = `${star}. Kuis tammat, terus latihan lagi.`;
+                document.getElementById('choices').innerHTML = '';
+                document.getElementById('timerText').textContent = '-';
+                clearInterval(clock);
+                return;
+            }
+            current += 1;
+            render();
+        });
+
+        document.getElementById('restartQuiz').addEventListener('click', () => {
+            current = 0;
+            score = 0;
+            combo = 0;
+            render();
+        });
+
+        document.getElementById('speakQuestion').addEventListener('click', () => {
+            const item = bank[current];
+            speak(mode === 'aksara' ? item.answer : `Aksara ${item.answer}`);
+        });
+
+        document.querySelectorAll('.mode-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.mode-btn').forEach(item => item.classList.remove('active'));
+                button.classList.add('active');
+                mode = button.dataset.mode;
+                current = 0;
+                score = 0;
+                combo = 0;
+                render();
+            });
+        });
+
+        render();
+    </script>
+</body>
+</html>

@@ -7,31 +7,51 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="splash-screen" id="splashScreen">
+        <div class="splash-card">
+            <div class="splash-animation" id="splashAnimation"></div>
+            <div class="splash-title">Kaganga Kids</div>
+            <div class="splash-subtitle">Belajar Aksara Lampung</div>
+            <button class="splash-skip" id="splashSkip">Mulai</button>
+        </div>
+    </div>
 
     <div class="top-bar">
-        <button class="btn-round" id="musicToggle">🔊</button>
-        <button class="btn-round" id="openSettingsBtn">⚙️</button>
+        <button class="btn-round" id="musicToggle">&#128266;</button>
+        <button class="btn-round" id="openSettingsBtn">&#9881;</button>
+    </div>
+
+    <div class="progress-pill">
+        <span>Nyani: <strong id="homeSongPoint">0</strong></span>
+        <span>Nulis: <strong id="homeWritePoint">0</strong></span>
+        <span>Kuis: <strong id="homeQuizPoint">0</strong></span>
+        <span>Bahasa: <strong id="homeLangPoint">0</strong></span>
     </div>
 
     <div class="menu-container">
         <button class="menu-item" onclick="window.location.href='nyanyi.html'">
-            <div class="icon-box bg-nyanyi">🎵</div>
+            <div class="icon-box bg-nyanyi">&#127925;</div>
             <div class="menu-label">Lagu Aksara</div>
         </button>
-        
+
         <button class="menu-item" onclick="window.location.href='nulis.html'">
-            <div class="icon-box bg-nulis">✍️</div>
+            <div class="icon-box bg-nulis">&#9997;</div>
             <div class="menu-label">Menulis Aksara</div>
         </button>
-        
-        <button class="menu-item" onclick="alert('Kuis Aksara segera hadir ya!')">
-            <div class="icon-box bg-kuis">🎮</div>
+
+        <button class="menu-item" onclick="window.location.href='kuis.html'">
+            <div class="icon-box bg-kuis">&#127918;</div>
             <div class="menu-label">Kuis Aksara</div>
         </button>
-        
+
         <button class="menu-item" onclick="window.location.href='tandabaca.html'">
-            <div class="icon-box bg-tanda">📖</div>
+            <div class="icon-box bg-tanda">&#128214;</div>
             <div class="menu-label">Tanda Baca</div>
+        </button>
+
+        <button class="menu-item" onclick="window.location.href='bahasa.html'">
+            <div class="icon-box bg-bahasa">&#128483;</div>
+            <div class="menu-label">Bahasa Lampung</div>
         </button>
     </div>
 
@@ -41,40 +61,41 @@
 
     <div class="modal-overlay" id="settingsModal">
         <div class="modal-content">
-            <button class="close-modal" id="closeSettingsBtn">✕</button>
+            <button class="close-modal" id="closeSettingsBtn">&#10005;</button>
             <div class="modal-title">PENGATURAN</div>
-            
+
             <div class="tools-grid">
                 <div class="tool-box" id="modalMusicToggle">
-                    <div class="tool-icon bg-music" id="modalMusicIcon">🎵</div>
+                    <div class="tool-icon bg-music" id="modalMusicIcon">&#127925;</div>
                     <span>BG Music</span>
                 </div>
                 <div class="tool-box" onclick="alert('Suara efek aktif!')">
-                    <div class="tool-icon bg-suara">🔊</div>
+                    <div class="tool-icon bg-suara">&#128266;</div>
                     <span>Suara</span>
                 </div>
-                <div class="tool-box" onclick="alert('Terima kasih dukungannya! ⭐')">
-                    <div class="tool-icon bg-rate">⭐</div>
+                <div class="tool-box" onclick="alert('Terima kasih dukungannya!')">
+                    <div class="tool-icon bg-rate">&#11088;</div>
                     <span>Beri Rating</span>
                 </div>
                 <div class="tool-box" onclick="window.open('https://wa.me/', '_blank')">
-                    <div class="tool-icon bg-chat">💬</div>
+                    <div class="tool-icon bg-chat">&#128172;</div>
                     <span>Chat CS</span>
                 </div>
                 <div class="tool-box" onclick="location.href='mailto:cs@kagangakids.com'">
-                    <div class="tool-icon bg-email">✉️</div>
+                    <div class="tool-icon bg-email">&#9993;</div>
                     <span>Email</span>
                 </div>
                 <div class="tool-box" onclick="window.open('https://instagram.com/', '_blank')">
-                    <div class="tool-icon bg-ig">📸</div>
+                    <div class="tool-icon bg-ig">&#128248;</div>
                     <span>Instagram</span>
                 </div>
-                
-                <button class="btn-vip" onclick="alert('Menuju Pembelian VIP Premium... 👑')">👑 BELI VERSI VIP 👑</button>
+
+                <button class="btn-vip" onclick="alert('Menuju Pembelian VIP Premium...')">&#128081; BELI VERSI VIP &#128081;</button>
             </div>
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

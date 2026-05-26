@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tanda Baca Aksara</title>
+    <link rel="stylesheet" href="belajar.css">
+</head>
+<body>
+    <main class="page-shell">
+        <header class="app-header">
+            <a class="back-btn" href="index.html">&#8592; Mulang</a>
+            <div class="title-block">
+                <p class="eyebrow">Ngerti tanda</p>
+                <h1>Tanda Baca Aksara Lampung</h1>
+                <p class="subtitle">Pahami tanda, bunyi aksara jadi lebih terang.</p>
+            </div>
+        </header>
+
+        <section class="panel">
+            <div class="cards-grid" id="markCards"></div>
+        </section>
+
+        <section class="panel quiz-card" style="margin-top:16px">
+            <div class="score-row">
+                <span>Latihan cilik</span>
+                <span id="miniScore">Skor 0</span>
+            </div>
+            <div class="question-symbol" id="miniSymbol">Ulan</div>
+            <p class="feedback" id="miniQuestion">Tanda hinji gunana api?</p>
+            <div class="choices" id="miniChoices"></div>
+        </section>
+
+        <section class="panel" style="margin-top:16px">
+            <p class="mini-title">Game Cocokkon Tanda</p>
+            <p class="feedback" id="matchInfo">Pilih nama tanda, lalu pilih gunana sai cocok.</p>
+            <div class="match-board" id="matchBoard"></div>
+        </section>
+    </main>
+
+    <script>
+        const marks = [
+            { symbol: 'Ulan', name: 'Tanda Ulan', use: 'Nambah bunyi i.', example: 'Ka + ulan dibaca ki.' },
+            { symbol: 'Bicek', name: 'Tanda Bicek', use: 'Nambah bunyi e.', example: 'Ga + bicek dibaca ge.' },
+            { symbol: 'Tekelubang', name: 'Tanda Tekelubang', use: 'Nambah bunyi u.', example: 'Pa + tekelubang dibaca pu.' },
+            { symbol: 'Rejunjung', name: 'Tanda Rejunjung', use: 'Nambah bunyi r.', example: 'Ba + rejunjung jadi bunyi bar.' },
+            { symbol: 'Datasan', name: 'Tanda Datasan', use: 'Nambah bunyi n.', example: 'Ma + datasan jadi bunyi man.' },
+            { symbol: 'Tekelingai', name: 'Tanda Tekelingai', use: 'Nambah bunyi ng.', example: 'Sa + tekelingai jadi sang.' },
+            { symbol: 'Nengen', name: 'Tanda Nengen', use: 'Matikeun bunyi vokal.', example: 'Aksara jadi bunyi mati.' },
+            { symbol: 'Keleniah', name: 'Tanda Keleniah', use: 'Membantu baca rangkaian kata.', example: 'Dipakai di latihan lanjut.' }
+        ];
+        let mini = 0;
+        let miniScore = 0;
+        let selectedMatch = null;
+        let matchedCount = 0;
+
+        document.getElementById('markCards').innerHTML = marks.map(mark => `
+            <article class="mark-card">
+                <div class="mark-symbol">${mark.symbol[0]}</div>
+                <h2>${mark.name}</h2>
+                <p>${mark.use}</p>
+                <p><strong>Conto:</strong> ${mark.example}</p>
+            </article>
+        `).join('');
+
+        function renderMini() {
+            const item = marks[mini];
+            const options = marks.map(mark => mark.use).filter(use => use !== item.use)
+                .sort(() => Math.random() - 0.5).slice(0, 3).concat(item.use)
+                .sort(() => Math.random() - 0.5);
+            document.getElementById('miniSymbol').textContent = item.name;
+            document.getElementById('miniQuestion').textContent = 'Tanda hinji gunana api?';
+            document.getElementById('miniChoices').innerHTML = options.map(option =>
+                `<button class="choice-btn" data-answer="${option}">${option}</button>`
+            ).join('');
+        }
+
+        document.getElementById('miniChoices').addEventListener('click', event => {
+            const button = event.target.closest('button');
+            if (!button) return;
+            const item = marks[mini];
+            const correct = button.dataset.answer === item.use;
+            button.classList.add(correct ? 'correct' : 'wrong');
+            if (correct) {
+                miniScore += 5;
+                localStorage.setItem('miniScoreTanda', miniScore);
+                document.getElementById('miniQuestion').textContent = 'Bener, kamu makin paham.';
+            } else {
+                document.getElementById('miniQuestion').textContent = `Belum pas. Jawaban: ${item.use}`;
+            }
+            document.getElementById('miniScore').textContent = `Skor ${miniScore}`;
+            setTimeout(() => {
+                mini = (mini + 1) % marks.length;
+                renderMini();
+            }, 900);
+        });
+
+        function renderMatch() {
+            const names = marks.slice(0, 6).map(mark => ({ type: 'name', key: mark.name, text: mark.name }));
+            const uses = marks.slice(0, 6).map(mark => ({ type: 'use', key: mark.name, text: mark.use }));
+            const cards = names.concat(uses).sort(() => Math.random() - 0.5);
+            document.getElementById('matchBoard').innerHTML = cards.map((card, index) =>
+                `<button class="match-card" data-key="${card.key}" data-type="${card.type}" data-index="${index}">${card.text}</button>`
+            ).join('');
+        }
+
+        document.getElementById('matchBoard').addEventListener('click', event => {
+            const card = event.target.closest('button');
+            if (!card || card.classList.contains('done')) return;
+            if (!selectedMatch) {
+                selectedMatch = card;
+                card.classList.add('selected');
+                return;
+            }
+            if (selectedMatch === card) {
+                card.classList.remove('selected');
+                selectedMatch = null;
+                return;
+            }
+            const sameKey = selectedMatch.dataset.key === card.dataset.key;
+            const differentType = selectedMatch.dataset.type !== card.dataset.type;
+            if (sameKey && differentType) {
+                selectedMatch.classList.remove('selected');
+                selectedMatch.classList.add('done');
+                card.classList.add('done');
+                matchedCount += 1;
+                miniScore += 10;
+                localStorage.setItem('miniScoreTanda', miniScore);
+                document.getElementById('miniScore').textContent = `Skor ${miniScore}`;
+                document.getElementById('matchInfo').textContent = matchedCount >= 6 ? 'Hebat, kabeh pasangan cocok!' : 'Cocok. Cari pasangan sai lain.';
+            } else {
+                selectedMatch.classList.remove('selected');
+                document.getElementById('matchInfo').textContent = 'Belum cocok, coba lagi pelan-pelan.';
+            }
+            selectedMatch = null;
+        });
+
+        renderMatch();
+        renderMini();
+    </script>
+</body>
+</html>

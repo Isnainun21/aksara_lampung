@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nulis Aksara</title>
+    <link rel="stylesheet" href="belajar.css">
+</head>
+<body>
+    <main class="page-shell">
+        <header class="app-header">
+            <a class="back-btn" href="index.html">&#8592; Mulang</a>
+            <div class="title-block">
+                <p class="eyebrow">Latihan tangan</p>
+                <h1>Nulis Aksara Lampung</h1>
+                <p class="subtitle">Tiru bentuk, tarik garis, ulangi sampai lancar.</p>
+            </div>
+        </header>
+
+        <section class="panel grid-two">
+            <div class="hero-card">
+                <div class="aksara-big" id="currentLetter">Ka</div>
+                <p class="latin-name" id="currentName">Aksara Ka</p>
+                <div class="info-list">
+                    <div class="info-item" id="hintOne">Titik awal: pucuk kiri.</div>
+                    <div class="info-item" id="hintTwo">Gerak tangan: pelan jama rapi.</div>
+                </div>
+                <div class="controls">
+                    <button class="ghost-btn" id="prevLetter">Balik</button>
+                    <button class="primary-btn" id="nextLetter">Teras</button>
+                    <button class="ghost-btn" id="toggleGuide">Tutup Contoh</button>
+                </div>
+                <div class="badge-row">
+                    <div class="badge"><strong id="writeCount">0</strong>Latihan Rampung</div>
+                    <div class="badge"><strong id="starText">0</strong>Bintang</div>
+                </div>
+            </div>
+
+            <div class="trace-guide">
+                <div class="trace-symbol" id="traceSymbol">Ka</div>
+                <canvas class="writing-board" id="board" width="520" height="360"></canvas>
+                <div class="tool-row" id="colorTools">
+                    <button class="swatch active" data-color="#ff5722" style="background:#ff5722"></button>
+                    <button class="swatch" data-color="#2e7d32" style="background:#2e7d32"></button>
+                    <button class="swatch" data-color="#1565c0" style="background:#1565c0"></button>
+                    <button class="swatch" data-color="#6a1b9a" style="background:#6a1b9a"></button>
+                </div>
+                <div class="controls">
+                    <button class="primary-btn" id="clearBoard">Apus Tulisan</button>
+                    <button class="ghost-btn" id="thinLine">Garis Alus</button>
+                    <button class="ghost-btn" id="thickLine">Garis Tebal</button>
+                </div>
+                <div class="star-check">
+                    <button class="choice-btn" data-star="1">Aku Nyoba</button>
+                    <button class="choice-btn" data-star="2">Aku Bisa</button>
+                    <button class="choice-btn" data-star="3">Aku Lancar</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="lesson-strip" id="letterStrip"></section>
+    </main>
+
+    <script>
+        const letters = [
+            { symbol: 'Ka', name: 'Aksara Ka', hint: 'Titik awal: pucuk kiri.', move: 'Gerak tangan: turun, lengkung, lalu tutup rapi.' },
+            { symbol: 'Ga', name: 'Aksara Ga', hint: 'Titik awal: bagian atas.', move: 'Gerak tangan: garis besar dulu, tambah ekor kecil.' },
+            { symbol: 'Nga', name: 'Aksara Nga', hint: 'Titik awal: tengah atas.', move: 'Gerak tangan: buat badan lebar, sambung pelan.' },
+            { symbol: 'Pa', name: 'Aksara Pa', hint: 'Titik awal: kiri bawah.', move: 'Gerak tangan: naik lalu putar sedikit.' },
+            { symbol: 'Ba', name: 'Aksara Ba', hint: 'Titik awal: kiri atas.', move: 'Gerak tangan: bentuk badan, tambah garis penanda.' },
+            { symbol: 'Ma', name: 'Aksara Ma', hint: 'Titik awal: atas.', move: 'Gerak tangan: tarik turun, lengkungkan ujung.' },
+            { symbol: 'Ta', name: 'Aksara Ta', hint: 'Titik awal: kiri.', move: 'Gerak tangan: garis pendek lalu sambung ke kanan.' },
+            { symbol: 'Da', name: 'Aksara Da', hint: 'Titik awal: atas kanan.', move: 'Gerak tangan: ikuti contoh sampai garis bertemu.' },
+            { symbol: 'Na', name: 'Aksara Na', hint: 'Titik awal: tengah.', move: 'Gerak tangan: buat lengkung kecil lalu panjangkan.' },
+            { symbol: 'Ca', name: 'Aksara Ca', hint: 'Titik awal: kiri atas.', move: 'Gerak tangan: bentuk pendek dan jaga jarak.' },
+            { symbol: 'Ja', name: 'Aksara Ja', hint: 'Titik awal: kanan atas.', move: 'Gerak tangan: turun pelan lalu beri ekor.' },
+            { symbol: 'Nya', name: 'Aksara Nya', hint: 'Titik awal: atas.', move: 'Gerak tangan: buat badan besar, tutup rapi.' },
+            { symbol: 'Ya', name: 'Aksara Ya', hint: 'Titik awal: kiri.', move: 'Gerak tangan: sambung halus ke kanan.' },
+            { symbol: 'La', name: 'Aksara La', hint: 'Titik awal: bawah.', move: 'Gerak tangan: naik lalu lengkung.' },
+            { symbol: 'Ra', name: 'Aksara Ra', hint: 'Titik awal: atas.', move: 'Gerak tangan: garis utama dulu, tambah tanda.' },
+            { symbol: 'Sa', name: 'Aksara Sa', hint: 'Titik awal: kiri atas.', move: 'Gerak tangan: ikuti lekuk dengan sabar.' },
+            { symbol: 'Wa', name: 'Aksara Wa', hint: 'Titik awal: tengah kiri.', move: 'Gerak tangan: buat putaran kecil.' },
+            { symbol: 'Ha', name: 'Aksara Ha', hint: 'Titik awal: atas kanan.', move: 'Gerak tangan: tutup bentuk sampai rapi.' }
+        ];
+
+        let index = 0;
+        let guideVisible = true;
+        let penColor = '#ff5722';
+        let penSize = 12;
+        let writeCount = Number(localStorage.getItem('latihanNulis') || 0);
+        let starTotal = Number(localStorage.getItem('bintangNulis') || 0);
+        const canvas = document.getElementById('board');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+
+        function render() {
+            const item = letters[index];
+            document.getElementById('currentLetter').textContent = item.symbol;
+            document.getElementById('currentName').textContent = item.name;
+            document.getElementById('hintOne').textContent = item.hint;
+            document.getElementById('hintTwo').textContent = item.move;
+            document.getElementById('traceSymbol').textContent = item.symbol;
+            document.getElementById('writeCount').textContent = writeCount;
+            document.getElementById('starText').textContent = starTotal;
+            document.getElementById('letterStrip').innerHTML = letters.map((letter, i) =>
+                `<button class="letter-chip ${i === index ? 'active' : ''}" data-index="${i}">
+                    <span class="chip-symbol">${letter.symbol}</span><span>${letter.name}</span>
+                </button>`
+            ).join('');
+        }
+
+        function point(event) {
+            const rect = canvas.getBoundingClientRect();
+            const touch = event.touches ? event.touches[0] : event;
+            return {
+                x: (touch.clientX - rect.left) * (canvas.width / rect.width),
+                y: (touch.clientY - rect.top) * (canvas.height / rect.height)
+            };
+        }
+
+        function start(event) {
+            drawing = true;
+            const p = point(event);
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            event.preventDefault();
+        }
+
+        function draw(event) {
+            if (!drawing) return;
+            const p = point(event);
+            ctx.lineWidth = penSize;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = penColor;
+            ctx.lineTo(p.x, p.y);
+            ctx.stroke();
+            event.preventDefault();
+        }
+
+        function stop() {
+            drawing = false;
+        }
+
+        canvas.addEventListener('mousedown', start);
+        canvas.addEventListener('mousemove', draw);
+        window.addEventListener('mouseup', stop);
+        canvas.addEventListener('touchstart', start, { passive: false });
+        canvas.addEventListener('touchmove', draw, { passive: false });
+        window.addEventListener('touchend', stop);
+        document.getElementById('clearBoard').addEventListener('click', () => ctx.clearRect(0, 0, canvas.width, canvas.height));
+        document.getElementById('prevLetter').addEventListener('click', () => { index = (index - 1 + letters.length) % letters.length; ctx.clearRect(0, 0, canvas.width, canvas.height); render(); });
+        document.getElementById('nextLetter').addEventListener('click', () => { index = (index + 1) % letters.length; ctx.clearRect(0, 0, canvas.width, canvas.height); render(); });
+        document.getElementById('toggleGuide').addEventListener('click', event => {
+            guideVisible = !guideVisible;
+            document.getElementById('traceSymbol').style.display = guideVisible ? 'grid' : 'none';
+            event.target.textContent = guideVisible ? 'Tutup Contoh' : 'Tampil Contoh';
+        });
+        document.getElementById('thinLine').addEventListener('click', () => { penSize = 7; });
+        document.getElementById('thickLine').addEventListener('click', () => { penSize = 16; });
+        document.getElementById('colorTools').addEventListener('click', event => {
+            const button = event.target.closest('button');
+            if (!button) return;
+            document.querySelectorAll('.swatch').forEach(item => item.classList.remove('active'));
+            button.classList.add('active');
+            penColor = button.dataset.color;
+        });
+        document.querySelector('.star-check').addEventListener('click', event => {
+            const button = event.target.closest('button');
+            if (!button) return;
+            writeCount += 1;
+            starTotal += Number(button.dataset.star);
+            localStorage.setItem('latihanNulis', writeCount);
+            localStorage.setItem('bintangNulis', starTotal);
+            render();
+        });
+        document.getElementById('letterStrip').addEventListener('click', event => {
+            const button = event.target.closest('button');
+            if (button) { index = Number(button.dataset.index); ctx.clearRect(0, 0, canvas.width, canvas.height); render(); }
+        });
+        render();
+    </script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nyanyian Aksara</title>
+    <link rel="stylesheet" href="belajar.css">
+</head>
+<body>
+    <main class="page-shell">
+        <header class="app-header">
+            <a class="back-btn" href="index.html">&#8592; Mulang</a>
+            <div class="title-block">
+                <p class="eyebrow">Belajar jama nyani</p>
+                <h1>Nyanyian Aksara Lampung</h1>
+                <p class="subtitle">Dengi, ikuti, ghapal aksara sai-sai.</p>
+            </div>
+        </header>
+
+        <section class="panel grid-two">
+            <div class="hero-card">
+                <div class="aksara-big" id="songSymbol">Ka</div>
+                <p class="latin-name" id="songName">Ka - Ga - Nga</p>
+                <div class="controls">
+                    <button class="primary-btn" id="playSong">&#9658; Mulai Nyani</button>
+                    <button class="ghost-btn" id="nextLine">Teras Baris</button>
+                    <button class="ghost-btn" id="speakLine">Dengi Bunyi</button>
+                </div>
+                <div class="badge-row">
+                    <div class="badge"><strong id="songPoint">0</strong>Poin Nyani</div>
+                    <div class="badge"><strong id="clapCount">0</strong>Tepuk</div>
+                </div>
+            </div>
+
+            <div>
+                <div class="mode-tabs">
+                    <button class="mode-btn active" data-speed="2200">Alon</button>
+                    <button class="mode-btn" data-speed="1600">Sedeng</button>
+                    <button class="mode-btn" data-speed="1050">Cepet</button>
+                </div>
+                <div class="song-lines" id="songLines"></div>
+                <div class="practice-box">
+                    <p class="mini-title">Tepuk Irama</p>
+                    <button class="primary-btn" id="clapBtn">Tepuk Jama Lagu</button>
+                    <div class="clap-meter" id="clapMeter"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="lesson-strip" id="letterStrip"></section>
+    </main>
+
+    <script>
+        const aksara = [
+            ['Ka', 'Kaga ngedengi, anak rajin mulang'],
+            ['Ga', 'Gaga nyani, hati senang terang'],
+            ['Nga', 'Nga ni bunyi, diingat pelan-pelan'],
+            ['Pa', 'Pa ba ma, tangan ikut tepuk'],
+            ['Ba', 'Ba ma ta, suwara jadi bagus'],
+            ['Ma', 'Ma ta da na, ulangi jama-sama'],
+            ['Ca', 'Ca ja nya ya, aksara jadi kawan'],
+            ['Ja', 'Ja nya ya, mulang jama kawan'],
+            ['Ta', 'Ta da na, baca lagi perlahan'],
+            ['Sa', 'La ra sa wa ha, tammat nyani hari ini']
+        ];
+
+        let activeLine = 0;
+        let timer = null;
+        let speed = 2200;
+        let songPoint = Number(localStorage.getItem('poinNyani') || 0);
+        let clapCount = 0;
+        const linesBox = document.getElementById('songLines');
+        const strip = document.getElementById('letterStrip');
+        const symbol = document.getElementById('songSymbol');
+        const nameBox = document.getElementById('songName');
+        const playBtn = document.getElementById('playSong');
+        const pointBox = document.getElementById('songPoint');
+        const clapBox = document.getElementById('clapCount');
+        const clapMeter = document.getElementById('clapMeter');
+
+        function render() {
+            linesBox.innerHTML = aksara.map((item, index) =>
+                `<div class="song-line ${index === activeLine ? 'active' : ''}">${item[1]}</div>`
+            ).join('');
+            strip.innerHTML = aksara.map((item, index) =>
+                `<button class="letter-chip ${index === activeLine ? 'active' : ''}" data-index="${index}">
+                    <span class="chip-symbol">${item[0]}</span>
+                    <span>${item[1].split(',')[0]}</span>
+                </button>`
+            ).join('');
+            symbol.textContent = aksara[activeLine][0];
+            nameBox.textContent = aksara[activeLine][1].split(',')[0];
+            pointBox.textContent = songPoint;
+            clapBox.textContent = clapCount;
+            clapMeter.innerHTML = Array.from({ length: 8 }, (_, i) =>
+                `<span class="clap-dot ${i < clapCount % 9 ? 'on' : ''}"></span>`
+            ).join('');
+        }
+
+        function setLine(index) {
+            activeLine = (index + aksara.length) % aksara.length;
+            songPoint += 1;
+            localStorage.setItem('poinNyani', songPoint);
+            render();
+        }
+
+        function speak(text) {
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'id-ID';
+            utterance.rate = 0.82;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        playBtn.addEventListener('click', () => {
+            if (timer) {
+                clearInterval(timer);
+                timer = null;
+                playBtn.innerHTML = '&#9658; Mulai Nyani';
+                return;
+            }
+            playBtn.textContent = 'Jeda Nyani';
+            timer = setInterval(() => {
+                setLine(activeLine + 1);
+                speak(aksara[activeLine][1]);
+            }, speed);
+        });
+
+        document.getElementById('nextLine').addEventListener('click', () => setLine(activeLine + 1));
+        document.getElementById('speakLine').addEventListener('click', () => speak(aksara[activeLine][1]));
+        document.getElementById('clapBtn').addEventListener('click', () => {
+            clapCount += 1;
+            songPoint += 2;
+            localStorage.setItem('poinNyani', songPoint);
+            render();
+        });
+        document.querySelectorAll('.mode-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.mode-btn').forEach(item => item.classList.remove('active'));
+                button.classList.add('active');
+                speed = Number(button.dataset.speed);
+                if (timer) {
+                    clearInterval(timer);
+                    timer = setInterval(() => setLine(activeLine + 1), speed);
+                }
+            });
+        });
+        strip.addEventListener('click', event => {
+            const button = event.target.closest('button');
+            if (button) setLine(Number(button.dataset.index));
+        });
+        render();
+    </script>
+</body>
+</html>

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bahasa Lampung</title>
+    <link rel="stylesheet" href="belajar.css">
+</head>
+<body>
+    <main class="page-shell">
+        <header class="app-header">
+            <a class="back-btn" href="index.html">&#8592; Mulang</a>
+            <div class="title-block">
+                <p class="eyebrow">Mulang bahasa</p>
+                <h1>Bahasa Lampung</h1>
+                <p class="subtitle">Kosakata, angka, warna, percakapan, jama game.</p>
+            </div>
+        </header>
+
+        <nav class="feature-nav panel" id="featureNav"></nav>
+
+        <section class="panel feature-panel active" id="kosakataPanel">
+            <div class="score-row">
+                <span>Kartu Kosakata</span>
+                <span id="vocabDone">0 rampung</span>
+            </div>
+            <div class="mode-tabs" id="categoryTabs"></div>
+            <div class="cards-grid" id="vocabCards"></div>
+        </section>
+
+        <section class="panel feature-panel" id="cocokPanel">
+            <p class="mini-title">Game Cocokkon Kata</p>
+            <p class="feedback" id="matchWordInfo">Pilih kata Lampung, lalu pilih arti sai cocok.</p>
+            <div class="match-board" id="wordMatchBoard"></div>
+        </section>
+
+        <section class="panel feature-panel" id="angkaPanel">
+            <div class="grid-two">
+                <div class="hero-card">
+                    <div class="aksara-big" id="numberBig">1</div>
+                    <p class="latin-name" id="numberWord">Sai</p>
+                    <div class="controls">
+                        <button class="ghost-btn" id="prevNumber">Balik</button>
+                        <button class="primary-btn" id="speakNumber">Dengi Angka</button>
+                        <button class="ghost-btn" id="nextNumber">Teras</button>
+                    </div>
+                </div>
+                <div>
+                    <p class="mini-title">Kuis Angka</p>
+                    <div class="question-symbol" id="numberQuiz">3</div>
+                    <p class="feedback" id="numberFeedback">Pilih nama angka sai pas.</p>
+                    <div class="choices" id="numberChoices"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel feature-panel" id="warnaPanel">
+            <div class="color-tile" id="colorTile">Warna</div>
+            <p class="feedback" id="colorFeedback">Pilih nama warna sai pas.</p>
+            <div class="choices" id="colorChoices"></div>
+        </section>
+
+        <section class="panel feature-panel" id="dialogPanel">
+            <div class="mode-tabs" id="dialogTabs"></div>
+            <div class="dialog-list" id="dialogList"></div>
+            <div class="controls">
+                <button class="primary-btn" id="speakDialog">Dengi Percakapan</button>
+            </div>
+        </section>
+
+        <section class="panel feature-panel" id="ikutiPanel">
+            <div class="hero-card">
+                <div class="aksara-big" id="listenWord">Tabik</div>
+                <p class="latin-name" id="listenMeaning">Salam</p>
+                <div class="controls">
+                    <button class="primary-btn" id="listenSpeak">Dengi</button>
+                    <button class="ghost-btn" id="listenDone">Sudah Bisa</button>
+                    <button class="ghost-btn" id="listenNext">Kata Lain</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel feature-panel" id="memoryPanel">
+            <p class="mini-title">Memory Card</p>
+            <p class="feedback" id="memoryInfo">Balik kartu, cari pasangan kata jama arti.</p>
+            <div class="memory-grid" id="memoryGrid"></div>
+        </section>
+
+        <section class="panel feature-panel" id="harianPanel">
+            <div class="score-row">
+                <span>Level Harian</span>
+                <span id="dailyStatus">0/5</span>
+            </div>
+            <div class="daily-list" id="dailyList"></div>
+            <div class="controls">
+                <button class="primary-btn" id="finishDaily">Rampungkan Hari Ini</button>
+            </div>
+        </section>
+
+        <section class="panel feature-panel" id="bintangPanel">
+            <p class="mini-title">Koleksi Bintang</p>
+            <div class="badge-row">
+                <div class="badge"><strong id="starWrite">0</strong>Bintang Nulis</div>
+                <div class="badge"><strong id="starQuiz">0</strong>Skor Kuis</div>
+                <div class="badge"><strong id="starVocab">0</strong>Kosakata</div>
+                <div class="badge"><strong id="starMark">0</strong>Tanda Baca</div>
+                <div class="badge"><strong id="starDaily">0</strong>Level Harian</div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const tabs = [
+            ['kosakataPanel', 'Kosakata'],
+            ['cocokPanel', 'Cocok Kata'],
+            ['angkaPanel', 'Angka'],
+            ['warnaPanel', 'Warna'],
+            ['dialogPanel', 'Percakapan'],
+            ['ikutiPanel', 'Dengar Ikuti'],
+            ['memoryPanel', 'Memory'],
+            ['harianPanel', 'Harian'],
+            ['bintangPanel', 'Bintang']
+        ];
+
+        const vocab = {
+            tubuh: [
+                ['&#128065;', 'Mata', 'Mata'], ['&#128066;', 'Cuping', 'Telinga'], ['&#128067;', 'Hidung', 'Hidung'],
+                ['&#9995;', 'Tangan', 'Tangan'], ['&#129462;', 'Suku', 'Kaki']
+            ],
+            angka: [
+                ['1', 'Sai', 'Satu'], ['2', 'Rua', 'Dua'], ['3', 'Telu', 'Tiga'],
+                ['4', 'Pak', 'Empat'], ['5', 'Lima', 'Lima']
+            ],
+            warna: [
+                ['&#128308;', 'Handak Mira', 'Merah'], ['&#128993;', 'Kuning', 'Kuning'], ['&#128994;', 'Hijau', 'Hijau'],
+                ['&#128309;', 'Biru', 'Biru'], ['&#9899;', 'Halom', 'Hitam']
+            ],
+            hewan: [
+                ['&#128049;', 'Kucing', 'Kucing'], ['&#128020;', 'Manuk', 'Ayam'], ['&#128031;', 'Iwa', 'Ikan'],
+                ['&#128004;', 'Sapi', 'Sapi'], ['&#128016;', 'Wedus', 'Kambing']
+            ],
+            keluarga: [
+                ['&#128104;', 'Bapak', 'Ayah'], ['&#128105;', 'Induk', 'Ibu'], ['&#128102;', 'Anak Ragah', 'Anak laki-laki'],
+                ['&#128103;', 'Anak Bebai', 'Anak perempuan'], ['&#128116;', 'Tuan', 'Kakek']
+            ],
+            sekolah: [
+                ['&#128218;', 'Buku', 'Buku'], ['&#9999;', 'Pinsil', 'Pensil'], ['&#127890;', 'Tas', 'Tas'],
+                ['&#127979;', 'Sekula', 'Sekolah'], ['&#129681;', 'Kursi', 'Kursi']
+            ]
+        };
+
+        const numbers = [
+            ['1', 'Sai'], ['2', 'Rua'], ['3', 'Telu'], ['4', 'Pak'], ['5', 'Lima'],
+            ['6', 'Enom'], ['7', 'Pitu'], ['8', 'Walu'], ['9', 'Siwa'], ['10', 'Puluh'],
+            ['11', 'Sebelas'], ['12', 'Rua belas'], ['13', 'Telu belas'], ['14', 'Pak belas'], ['15', 'Lima belas'],
+            ['16', 'Enom belas'], ['17', 'Pitu belas'], ['18', 'Walu belas'], ['19', 'Siwa belas'], ['20', 'Rua puluh']
+        ];
+
+        const colors = [
+            ['#e53935', 'Mira', 'Merah'], ['#fdd835', 'Kuning', 'Kuning'], ['#43a047', 'Hijau', 'Hijau'],
+            ['#1e88e5', 'Biru', 'Biru'], ['#212121', 'Halom', 'Hitam'], ['#ffffff', 'Putih', 'Putih']
+        ];
+
+        const dialogs = {
+            salam: [['A', 'Tabik pun.'], ['B', 'Tabik. Api kabar?'], ['A', 'Kabar baik.']],
+            kenal: [['A', 'Nyak Rani. Niku sapa?'], ['B', 'Nyak Bima. Senang kenal niku.']],
+            kabar: [['A', 'Api kabar niku?'], ['B', 'Kabar baik, terima kasih.']],
+            terima: [['A', 'Terima kasih.'], ['B', 'Sama-sama.']]
+        };
+
+        let category = 'tubuh';
+        let numberIndex = 0;
+        let colorIndex = 0;
+        let dialogKey = 'salam';
+        let listenIndex = 0;
+        let selectedMatch = null;
+        let memoryFirst = null;
+        let memoryLock = false;
+
+        function getAllWords() {
+            return Object.values(vocab).flat();
+        }
+
+        function speak(text) {
+            if (!('speechSynthesis' in window)) return;
+            speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'id-ID';
+            utterance.rate = 0.82;
+            speechSynthesis.speak(utterance);
+        }
+
+        function addStar(key, amount = 1) {
+            const next = Number(localStorage.getItem(key) || 0) + amount;
+            localStorage.setItem(key, next);
+            localStorage.setItem('bahasaStars', Number(localStorage.getItem('bahasaStars') || 0) + amount);
+            renderStars();
+        }
+
+        function showPanel(id) {
+            document.querySelectorAll('.feature-panel').forEach(panel => panel.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('#featureNav .mode-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.target === id));
+            renderStars();
+        }
+
+        function renderNav() {
+            document.getElementById('featureNav').innerHTML = tabs.map(([id, label], index) =>
+                `<button class="mode-btn ${index === 0 ? 'active' : ''}" data-target="${id}">${label}</button>`
+            ).join('');
+        }
+
+        function renderVocab() {
+            document.getElementById('categoryTabs').innerHTML = Object.keys(vocab).map(key =>
+                `<button class="mode-btn ${key === category ? 'active' : ''}" data-category="${key}">${key}</button>`
+            ).join('');
+            document.getElementById('vocabCards').innerHTML = vocab[category].map(item => `
+                <article class="vocab-card">
+                    <div class="vocab-icon">${item[0]}</div>
+                    <div class="vocab-word">${item[1]}</div>
+                    <div class="vocab-meaning">${item[2]}</div>
+                    <div class="controls">
+                        <button class="ghost-btn" data-say="${item[1]}">Dengi</button>
+                        <button class="primary-btn" data-known="${item[1]}">Sudah Bisa</button>
+                    </div>
+                </article>
+            `).join('');
+            document.getElementById('vocabDone').textContent = `${localStorage.getItem('vocabDone') || 0} rampung`;
+        }
+
+        function renderWordMatch() {
+            const sample = getAllWords().slice(0, 8);
+            const cards = sample.map(item => ({ key: item[1], type: 'word', text: item[1] }))
+                .concat(sample.map(item => ({ key: item[1], type: 'meaning', text: item[2] })))
+                .sort(() => Math.random() - 0.5);
+            document.getElementById('wordMatchBoard').innerHTML = cards.map(card =>
+                `<button class="match-card" data-key="${card.key}" data-type="${card.type}">${card.text}</button>`
+            ).join('');
+        }
+
+        function renderNumber() {
+            const item = numbers[numberIndex];
+            document.getElementById('numberBig').textContent = item[0];
+            document.getElementById('numberWord').textContent = item[1];
+            const choices = numbers.filter(row => row !== item).sort(() => Math.random() - 0.5).slice(0, 3).concat([item]).sort(() => Math.random() - 0.5);
+            document.getElementById('numberQuiz').textContent = item[0];
+            document.getElementById('numberChoices').innerHTML = choices.map(row =>
+                `<button class="choice-btn" data-answer="${row[1]}">${row[1]}</button>`
+            ).join('');
+        }
+
+        function renderColor() {
+            const item = colors[colorIndex];
+            const tile = document.getElementById('colorTile');
+            tile.style.background = item[0];
+            tile.style.color = item[0] === '#ffffff' ? '#203124' : '#fff';
+            tile.textContent = item[2];
+            const choices = colors.filter(row => row !== item).sort(() => Math.random() - 0.5).slice(0, 3).concat([item]).sort(() => Math.random() - 0.5);
+            document.getElementById('colorChoices').innerHTML = choices.map(row =>
+                `<button class="choice-btn" data-answer="${row[1]}">${row[1]}</button>`
+            ).join('');
+        }
+
+        function renderDialog() {
+            document.getElementById('dialogTabs').innerHTML = Object.keys(dialogs).map(key =>
+                `<button class="mode-btn ${key === dialogKey ? 'active' : ''}" data-dialog="${key}">${key}</button>`
+            ).join('');
+            document.getElementById('dialogList').innerHTML = dialogs[dialogKey].map((line, index) =>
+                `<div class="dialog-bubble ${index % 2 ? 'right' : ''}"><strong>${line[0]}:</strong> ${line[1]}</div>`
+            ).join('');
+        }
+
+        function renderListen() {
+            const item = getAllWords()[listenIndex % getAllWords().length];
+            document.getElementById('listenWord').textContent = item[1];
+            document.getElementById('listenMeaning').textContent = item[2];
+        }
+
+        function renderMemory() {
+            const sample = getAllWords().slice(10, 16);
+            const cards = sample.map(item => ({ key: item[1], text: item[1] }))
+                .concat(sample.map(item => ({ key: item[1], text: item[2] })))
+                .sort(() => Math.random() - 0.5);
+            document.getElementById('memoryGrid').innerHTML = cards.map((card, index) =>
+                `<button class="memory-card hidden-word" data-key="${card.key}" data-text="${card.text}" data-index="${index}">?</button>`
+            ).join('');
+        }
+
+        function renderDaily() {
+            const day = Math.floor(Date.now() / 86400000);
+            const words = getAllWords();
+            const start = day % (words.length - 5);
+            const daily = words.slice(start, start + 5);
+            const done = Number(localStorage.getItem('dailyDone') || 0);
+            document.getElementById('dailyStatus').textContent = `${Math.min(done, 5)}/5`;
+            document.getElementById('dailyList').innerHTML = daily.map(item => `
+                <article class="vocab-card">
+                    <div class="vocab-icon">${item[0]}</div>
+                    <div class="vocab-word">${item[1]}</div>
+                    <div class="vocab-meaning">${item[2]}</div>
+                </article>
+            `).join('');
+        }
+
+        function renderStars() {
+            document.getElementById('starWrite').textContent = localStorage.getItem('bintangNulis') || 0;
+            document.getElementById('starQuiz').textContent = localStorage.getItem('skorAksaraLampung') || 0;
+            document.getElementById('starVocab').textContent = localStorage.getItem('vocabDone') || 0;
+            document.getElementById('starMark').textContent = localStorage.getItem('miniScoreTanda') || 0;
+            document.getElementById('starDaily').textContent = localStorage.getItem('dailyStars') || 0;
+        }
+
+        document.addEventListener('click', event => {
+            const target = event.target;
+            if (target.matches('#featureNav .mode-btn')) showPanel(target.dataset.target);
+            if (target.dataset.category) { category = target.dataset.category; renderVocab(); }
+            if (target.dataset.say) speak(target.dataset.say);
+            if (target.dataset.known) {
+                localStorage.setItem('vocabDone', Number(localStorage.getItem('vocabDone') || 0) + 1);
+                addStar('vocabStars');
+                renderVocab();
+            }
+            if (target.dataset.dialog) { dialogKey = target.dataset.dialog; renderDialog(); }
+        });
+
+        document.getElementById('wordMatchBoard').addEventListener('click', event => {
+            const card = event.target.closest('button');
+            if (!card || card.classList.contains('done')) return;
+            if (!selectedMatch) {
+                selectedMatch = card;
+                card.classList.add('selected');
+                return;
+            }
+            if (selectedMatch.dataset.key === card.dataset.key && selectedMatch.dataset.type !== card.dataset.type) {
+                selectedMatch.classList.add('done');
+                card.classList.add('done');
+                addStar('matchStars');
+                document.getElementById('matchWordInfo').textContent = 'Cocok. Lanjut pasangan lain.';
+            } else {
+                selectedMatch.classList.remove('selected');
+                document.getElementById('matchWordInfo').textContent = 'Belum cocok, coba lagi.';
+            }
+            selectedMatch = null;
+        });
+
+        document.getElementById('prevNumber').addEventListener('click', () => { numberIndex = (numberIndex - 1 + numbers.length) % numbers.length; renderNumber(); });
+        document.getElementById('nextNumber').addEventListener('click', () => { numberIndex = (numberIndex + 1) % numbers.length; renderNumber(); });
+        document.getElementById('speakNumber').addEventListener('click', () => speak(numbers[numberIndex][1]));
+        document.getElementById('numberChoices').addEventListener('click', event => {
+            const button = event.target.closest('button');
+            if (!button) return;
+            const ok = button.dataset.answer === numbers[numberIndex][1];
+            button.classList.add(ok ? 'correct' : 'wrong');
+            document.getElementById('numberFeedback').textContent = ok ? 'Bener!' : `Jawaban: ${numbers[numberIndex][1]}`;
+            if (ok) addStar('numberStars');
+            setTimeout(() => { numberIndex = (numberIndex + 1) % numbers.length; renderNumber(); }, 700);
+        });
+
+        document.getElementById('colorChoices').addEventListener('click', event => {
+            const button = event.target.closest('button');
+            if (!button) return;
+            const ok = button.dataset.answer === colors[colorIndex][1];
+            button.classList.add(ok ? 'correct' : 'wrong');
+            document.getElementById('colorFeedback').textContent = ok ? 'Bener, warna sai pas!' : `Jawaban: ${colors[colorIndex][1]}`;
+            if (ok) addStar('colorStars');
+            setTimeout(() => { colorIndex = (colorIndex + 1) % colors.length; renderColor(); }, 800);
+        });
+
+        document.getElementById('speakDialog').addEventListener('click', () => speak(dialogs[dialogKey].map(line => line[1]).join('. ')));
+        document.getElementById('listenSpeak').addEventListener('click', () => speak(getAllWords()[listenIndex % getAllWords().length][1]));
+        document.getElementById('listenNext').addEventListener('click', () => { listenIndex += 1; renderListen(); });
+        document.getElementById('listenDone').addEventListener('click', () => { addStar('listenStars'); listenIndex += 1; renderListen(); });
+
+        document.getElementById('memoryGrid').addEventListener('click', event => {
+            const card = event.target.closest('button');
+            if (!card || memoryLock || card.classList.contains('done')) return;
+            card.textContent = card.dataset.text;
+            card.classList.remove('hidden-word');
+            if (!memoryFirst) {
+                memoryFirst = card;
+                return;
+            }
+            memoryLock = true;
+            if (memoryFirst.dataset.key === card.dataset.key && memoryFirst !== card) {
+                memoryFirst.classList.add('done');
+                card.classList.add('done');
+                addStar('memoryStars');
+                document.getElementById('memoryInfo').textContent = 'Pasangan ketemu.';
+                memoryFirst = null;
+                memoryLock = false;
+                return;
+            }
+            setTimeout(() => {
+                memoryFirst.textContent = '?';
+                card.textContent = '?';
+                memoryFirst.classList.add('hidden-word');
+                card.classList.add('hidden-word');
+                memoryFirst = null;
+                memoryLock = false;
+            }, 650);
+        });
+
+        document.getElementById('finishDaily').addEventListener('click', () => {
+            localStorage.setItem('dailyDone', 5);
+            localStorage.setItem('dailyStars', Number(localStorage.getItem('dailyStars') || 0) + 5);
+            addStar('dailyBonus', 5);
+            renderDaily();
+        });
+
+        renderNav();
+        renderVocab();
+        renderWordMatch();
+        renderNumber();
+        renderColor();
+        renderDialog();
+        renderListen();
+        renderMemory();
+        renderDaily();
+        renderStars();
+    </script>
+</body>
+</html>
