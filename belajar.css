@@ -2,10 +2,23 @@
     box-sizing: border-box;
 }
 
+button,
+div,
+span,
+p,
+h1,
+h2,
+strong,
+article {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
 body {
     margin: 0;
     min-height: 100vh;
-    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
     color: #203124;
     background:
         linear-gradient(rgba(255,255,255,0.68), rgba(255,255,255,0.75)),
@@ -17,6 +30,7 @@ body {
     width: min(1080px, calc(100vw - 28px));
     margin: 0 auto;
     padding: 18px 0 28px;
+    overflow-x: hidden;
 }
 
 .app-header {
@@ -63,6 +77,7 @@ h1 {
     color: #ff5722;
     font-size: clamp(1.7rem, 4vw, 2.8rem);
     -webkit-text-stroke: 1px rgba(0,0,0,0.45);
+    overflow-wrap: normal;
 }
 
 .subtitle {
@@ -179,12 +194,14 @@ h1 {
     background: #ff5722;
     color: #fff;
     padding: 11px 16px;
+    line-height: 1.1;
 }
 
 .ghost-btn {
     background: #ffb300;
     color: #3d2b00;
     padding: 10px 14px;
+    line-height: 1.1;
 }
 
 .mode-tabs {
@@ -388,6 +405,8 @@ h1 {
     background: #fff;
     color: #203124;
     font-size: 1.05rem;
+    padding: 8px;
+    line-height: 1.15;
 }
 
 .choice-btn.correct {
@@ -462,6 +481,8 @@ h1 {
     font-weight: 900;
     color: #203124;
     box-shadow: 0 4px 0 rgba(0,0,0,0.12);
+    padding: 8px;
+    line-height: 1.15;
 }
 
 .match-card.selected {
@@ -573,6 +594,7 @@ h1 {
     cursor: pointer;
     box-shadow: 0 4px 0 rgba(0,0,0,0.12);
     overflow-wrap: anywhere;
+    line-height: 1.15;
 }
 
 .memory-card.hidden-word {
@@ -597,6 +619,7 @@ h1 {
     .page-shell {
         width: min(100vw - 18px, 560px);
         padding-top: 10px;
+        padding-bottom: 18px;
     }
 
     .app-header {
@@ -660,6 +683,7 @@ h1 {
     .ghost-btn {
         padding: 9px 10px;
         font-size: 0.82rem;
+        min-height: 38px;
     }
 
     .badge-row {
@@ -838,5 +862,50 @@ h1 {
 
     .lesson-strip {
         grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 340px) {
+    .page-shell {
+        width: min(100vw - 12px, 330px);
+    }
+
+    h1 {
+        font-size: 1.38rem;
+    }
+
+    .subtitle,
+    .eyebrow {
+        font-size: 0.76rem;
+    }
+
+    .panel {
+        padding: 8px;
+        border-radius: 15px;
+    }
+
+    .feature-nav,
+    .mode-tabs,
+    .badge-row,
+    .choices,
+    .cards-grid,
+    .daily-list,
+    .match-board,
+    .memory-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .question-symbol {
+        min-height: 130px;
+        font-size: clamp(2.2rem, 18vw, 4rem);
+    }
+
+    .vocab-icon {
+        min-height: 58px;
+        font-size: 2rem;
+    }
+
+    .color-tile {
+        min-height: 110px;
     }
 }
