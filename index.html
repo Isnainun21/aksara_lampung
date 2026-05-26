@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kaganga Kids - Menu Utama</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="top-bar">
+        <button class="btn-round" id="musicToggle">🔊</button>
+        <button class="btn-round" id="openSettingsBtn">⚙️</button>
+    </div>
+
+    <div class="menu-container">
+        <button class="menu-item" onclick="window.location.href='nyanyi.html'">
+            <div class="icon-box bg-nyanyi">🎵</div>
+            <div class="menu-label">Lagu Aksara</div>
+        </button>
+        
+        <button class="menu-item" onclick="window.location.href='nulis.html'">
+            <div class="icon-box bg-nulis">✍️</div>
+            <div class="menu-label">Menulis Aksara</div>
+        </button>
+        
+        <button class="menu-item" onclick="alert('Kuis Aksara segera hadir ya!')">
+            <div class="icon-box bg-kuis">🎮</div>
+            <div class="menu-label">Kuis Aksara</div>
+        </button>
+        
+        <button class="menu-item" onclick="window.location.href='tandabaca.html'">
+            <div class="icon-box bg-tanda">📖</div>
+            <div class="menu-label">Tanda Baca</div>
+        </button>
+    </div>
+
+    <audio id="bgMusic" loop>
+        <source src="back sound menu.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeSettingsBtn">✕</button>
+            <div class="modal-title">PENGATURAN</div>
+            
+            <div class="tools-grid">
+                <div class="tool-box" id="modalMusicToggle">
+                    <div class="tool-icon bg-music" id="modalMusicIcon">🎵</div>
+                    <span>BG Music</span>
+                </div>
+                <div class="tool-box" onclick="alert('Suara efek aktif!')">
+                    <div class="tool-icon bg-suara">🔊</div>
+                    <span>Suara</span>
+                </div>
+                <div class="tool-box" onclick="alert('Terima kasih dukungannya! ⭐')">
+                    <div class="tool-icon bg-rate">⭐</div>
+                    <span>Beri Rating</span>
+                </div>
+                <div class="tool-box" onclick="window.open('https://wa.me/', '_blank')">
+                    <div class="tool-icon bg-chat">💬</div>
+                    <span>Chat CS</span>
+                </div>
+                <div class="tool-box" onclick="location.href='mailto:cs@kagangakids.com'">
+                    <div class="tool-icon bg-email">✉️</div>
+                    <span>Email</span>
+                </div>
+                <div class="tool-box" onclick="window.open('https://instagram.com/', '_blank')">
+                    <div class="tool-icon bg-ig">📸</div>
+                    <span>Instagram</span>
+                </div>
+                
+                <button class="btn-vip" onclick="alert('Menuju Pembelian VIP Premium... 👑')">👑 BELI VERSI VIP 👑</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
