@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -13,6 +14,27 @@ const _leaf = Color(0xFF2F8F6B);
 const _sun = Color(0xFFFFC857);
 const _coral = Color(0xFFE85D45);
 const _sky = Color(0xFF3D8DFF);
+const _pageMaxWidth = 760.0;
+const _desktopMaxWidth = 980.0;
+
+int _gridColumns(
+  double width, {
+  int compact = 1,
+  int medium = 2,
+  int wide = 3,
+}) {
+  if (width >= 840) return wide;
+  if (width >= 520) return medium;
+  return compact;
+}
+
+double _homeTileAspect(double width) {
+  if (width < 360) return 1.08;
+  if (width < 520) return 1.18;
+  return 1.28;
+}
+
+double _responsiveTitleSize(double width) => width < 360 ? 24 : 28;
 
 class KagangaKidsApp extends StatelessWidget {
   const KagangaKidsApp({super.key});
@@ -21,7 +43,7 @@ class KagangaKidsApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Kaganga Kids',
+      title: 'Kaganga',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: _leaf,
@@ -110,40 +132,47 @@ class _SplashPageState extends State<SplashPage> {
       body: DecoratedBox(
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('assets/images/bg_mobile.png'),
+            image: AssetImage('assets/images/bg_menu_aksara.png'),
             fit: BoxFit.cover,
+            alignment: Alignment.center,
           ),
         ),
         child: Center(
-          child: Panel(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Ka',
-                  style: TextStyle(
-                    fontSize: 72,
-                    fontWeight: FontWeight.w900,
-                    color: _leaf,
-                  ),
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Panel(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const AppLogo(size: 78),
+                    const SizedBox(height: 10),
+                    const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'Kaganga',
+                        style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w900,
+                          color: _ink,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Belajar Aksara Lampung',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 16, color: _ink),
+                    ),
+                    const SizedBox(height: 18),
+                    FilledButton(
+                      onPressed: _openHome,
+                      child: const Text('Mulai'),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Kaganga Kids',
-                  style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.w900,
-                    color: _ink,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Belajar Aksara Lampung',
-                  style: TextStyle(fontSize: 16, color: _ink),
-                ),
-                const SizedBox(height: 18),
-                FilledButton(onPressed: _openHome, child: const Text('Mulai')),
-              ],
+              ),
             ),
           ),
         ),
@@ -152,8 +181,67 @@ class _SplashPageState extends State<SplashPage> {
   }
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
+  final AudioPlayer _backsound = AudioPlayer(playerId: 'menu_backsound');
+  bool _musicEnabled = true;
+  bool _playerReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _prepareBacksound();
+  }
+
+  Future<void> _prepareBacksound() async {
+    try {
+      await _backsound.setReleaseMode(ReleaseMode.loop);
+      await _backsound.setVolume(.45);
+      await _backsound.play(AssetSource('audio/back_sound_menu.mp3'));
+      if (mounted) setState(() => _playerReady = true);
+    } catch (_) {
+      if (mounted) setState(() => _musicEnabled = false);
+    }
+  }
+
+  Future<void> _toggleMusic() async {
+    setState(() => _musicEnabled = !_musicEnabled);
+    if (_musicEnabled) {
+      if (_playerReady) {
+        await _backsound.resume();
+      } else {
+        await _prepareBacksound();
+      }
+    } else {
+      await _backsound.pause();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!_playerReady) return;
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.detached) {
+      _backsound.pause();
+    } else if (state == AppLifecycleState.resumed && _musicEnabled) {
+      _backsound.resume();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _backsound.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -169,91 +257,152 @@ class HomePage extends StatelessWidget {
           child: AnimatedBuilder(
             animation: appState,
             builder: (context, _) {
-              return Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                    child: Row(
-                      children: [
-                        const Expanded(
-                          child: Text(
-                            'Kaganga Kids',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w900,
-                              color: _ink,
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  final columns = constraints.maxWidth >= 720 ? 3 : 2;
+                  return Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxWidth: _desktopMaxWidth,
+                      ),
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                            child: Row(
+                              children: [
+                                const AppLogo(size: 44),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Kaganga',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: _responsiveTitleSize(
+                                            constraints.maxWidth,
+                                          ),
+                                          fontWeight: FontWeight.w900,
+                                          color: _ink,
+                                        ),
+                                      ),
+                                      const Text(
+                                        'Belajar Aksara Lampung',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                          color: Color(0xFF51645A),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                IconButton.filledTonal(
+                                  onPressed: _toggleMusic,
+                                  tooltip:
+                                      _musicEnabled
+                                          ? 'Matikan musik'
+                                          : 'Nyalakan musik',
+                                  icon: Icon(
+                                    _musicEnabled
+                                        ? Icons.volume_up
+                                        : Icons.volume_off,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                IconButton.filledTonal(
+                                  onPressed:
+                                      () => showDialog<void>(
+                                        context: context,
+                                        builder: (_) => const SettingsDialog(),
+                                      ),
+                                  icon: const Icon(Icons.settings),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                        IconButton.filledTonal(
-                          onPressed:
-                              () => showDialog<void>(
-                                context: context,
-                                builder: (_) => const SettingsDialog(),
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  ScoreChip(
+                                    label: 'Nyani',
+                                    value: appState.songPoint,
+                                  ),
+                                  ScoreChip(
+                                    label: 'Nulis',
+                                    value: appState.writeCount,
+                                  ),
+                                  ScoreChip(
+                                    label: 'Kuis',
+                                    value: appState.quizBest,
+                                  ),
+                                  ScoreChip(
+                                    label: 'Bahasa',
+                                    value: appState.languageStars,
+                                  ),
+                                ],
                               ),
-                          icon: const Icon(Icons.settings),
-                        ),
-                      ],
+                            ),
+                          ),
+                          Expanded(
+                            child: GridView.count(
+                              padding: const EdgeInsets.fromLTRB(18, 4, 18, 24),
+                              crossAxisCount: columns,
+                              mainAxisSpacing: 14,
+                              crossAxisSpacing: 14,
+                              childAspectRatio: _homeTileAspect(
+                                constraints.maxWidth,
+                              ),
+                              children: const [
+                                HomeTile(
+                                  'Lagu Aksara',
+                                  Icons.music_note,
+                                  _coral,
+                                  SongPage(),
+                                ),
+                                HomeTile(
+                                  'Menulis Aksara',
+                                  Icons.edit,
+                                  _leaf,
+                                  WritePage(),
+                                ),
+                                HomeTile(
+                                  'Kuis Aksara',
+                                  Icons.sports_esports,
+                                  _sky,
+                                  QuizPage(),
+                                ),
+                                HomeTile(
+                                  'Tanda Baca',
+                                  Icons.menu_book,
+                                  Color(0xFF7D5FFF),
+                                  MarksPage(),
+                                ),
+                                HomeTile(
+                                  'Bahasa Lampung',
+                                  Icons.record_voice_over,
+                                  Color(0xFFF28C28),
+                                  LanguagePage(),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        ScoreChip(label: 'Nyani', value: appState.songPoint),
-                        ScoreChip(label: 'Nulis', value: appState.writeCount),
-                        ScoreChip(label: 'Kuis', value: appState.quizBest),
-                        ScoreChip(
-                          label: 'Bahasa',
-                          value: appState.languageStars,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: GridView.count(
-                      padding: const EdgeInsets.fromLTRB(18, 4, 18, 24),
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 14,
-                      crossAxisSpacing: 14,
-                      childAspectRatio: .92,
-                      children: [
-                        HomeTile(
-                          'Lagu Aksara',
-                          Icons.music_note,
-                          _coral,
-                          const SongPage(),
-                        ),
-                        HomeTile(
-                          'Menulis Aksara',
-                          Icons.edit,
-                          _leaf,
-                          const WritePage(),
-                        ),
-                        HomeTile(
-                          'Kuis Aksara',
-                          Icons.sports_esports,
-                          _sky,
-                          const QuizPage(),
-                        ),
-                        HomeTile(
-                          'Tanda Baca',
-                          Icons.menu_book,
-                          const Color(0xFF7D5FFF),
-                          const MarksPage(),
-                        ),
-                        HomeTile(
-                          'Bahasa Lampung',
-                          Icons.record_voice_over,
-                          const Color(0xFFF28C28),
-                          const LanguagePage(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  );
+                },
               );
             },
           ),
@@ -273,42 +422,209 @@ class HomeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white.withValues(alpha: .92),
-      borderRadius: BorderRadius.circular(8),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
-        onTap:
-            () => Navigator.of(
-              context,
-            ).push(MaterialPageRoute<void>(builder: (_) => page)),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, size: 38, color: Colors.white),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final iconBox = constraints.maxWidth < 150 ? 48.0 : 58.0;
+        return Material(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          elevation: 5,
+          shadowColor: Colors.black.withValues(alpha: .16),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap:
+                () => Navigator.of(
+                  context,
+                ).push(MaterialPageRoute<void>(builder: (_) => page)),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: iconBox,
+                    height: iconBox,
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(icon, size: iconBox * .54, color: Colors.white),
+                  ),
+                  const SizedBox(height: 10),
+                  Flexible(
+                    child: Text(
+                      title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: _ink,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 14),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
-                  color: _ink,
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+        );
+      },
+    );
+  }
+}
+
+class ResponsiveGrid extends StatelessWidget {
+  const ResponsiveGrid({
+    required this.children,
+    this.compactColumns = 1,
+    this.mediumColumns = 2,
+    this.wideColumns = 2,
+    this.childAspectRatio = 2.5,
+    super.key,
+  });
+
+  final List<Widget> children;
+  final int compactColumns;
+  final int mediumColumns;
+  final int wideColumns;
+  final double childAspectRatio;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = _gridColumns(
+          constraints.maxWidth,
+          compact: compactColumns,
+          medium: mediumColumns,
+          wide: wideColumns,
+        );
+        return GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: columns,
+          mainAxisSpacing: 10,
+          crossAxisSpacing: 10,
+          childAspectRatio: childAspectRatio,
+          children: children,
+        );
+      },
+    );
+  }
+}
+
+class ResponsiveListTile extends StatelessWidget {
+  const ResponsiveListTile({
+    required this.leading,
+    required this.title,
+    this.subtitle,
+    this.trailing,
+    super.key,
+  });
+
+  final Widget leading;
+  final Widget title;
+  final Widget? subtitle;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 330 && trailing != null) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  leading,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        title,
+                        if (subtitle != null) ...[
+                          const SizedBox(height: 4),
+                          subtitle!,
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              SizedBox(width: double.infinity, child: trailing),
+            ],
+          );
+        }
+        return ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: leading,
+          title: title,
+          subtitle: subtitle,
+          trailing: trailing,
+        );
+      },
+    );
+  }
+}
+
+class PageContent extends StatelessWidget {
+  const PageContent({
+    required this.child,
+    this.maxWidth = _pageMaxWidth,
+    super.key,
+  });
+
+  final Widget child;
+  final double maxWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: child,
+      ),
+    );
+  }
+}
+
+class AppLogo extends StatelessWidget {
+  const AppLogo({this.size = 48, super.key});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: _leaf,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white, width: size * .06),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: .16),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Icon(Icons.auto_stories, color: _sun, size: size * .52),
+          Positioned(
+            right: size * .14,
+            bottom: size * .12,
+            child: Icon(Icons.edit, color: Colors.white, size: size * .28),
+          ),
+        ],
       ),
     );
   }
@@ -339,68 +655,128 @@ class PageShell extends StatelessWidget {
     required this.eyebrow,
     required this.title,
     required this.subtitle,
+    required this.icon,
+    required this.accent,
     required this.child,
+    this.scrollPhysics,
     super.key,
   });
 
   final String eyebrow;
   final String title;
   final String subtitle;
+  final IconData icon;
+  final Color accent;
   final Widget child;
+  final ScrollPhysics? scrollPhysics;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                IconButton.filledTonal(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.arrow_back),
-                  tooltip: 'Mulang',
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        eyebrow.toUpperCase(),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w900,
-                          color: _leaf,
-                        ),
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/bg_mobile.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return ListView(
+                physics: scrollPhysics,
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
+                children: [
+                  PageContent(
+                    child: Panel(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          IconButton.filledTonal(
+                            onPressed: () => Navigator.pop(context),
+                            icon: const Icon(Icons.arrow_back),
+                            tooltip: 'Mulang',
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            width: 46,
+                            height: 46,
+                            decoration: BoxDecoration(
+                              color: accent,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(icon, color: Colors.white, size: 27),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  eyebrow.toUpperCase(),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w900,
+                                    color: _leaf,
+                                  ),
+                                ),
+                                Text(
+                                  title,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: _responsiveTitleSize(
+                                      constraints.maxWidth,
+                                    ),
+                                    fontWeight: FontWeight.w900,
+                                    color: _ink,
+                                  ),
+                                ),
+                                Text(
+                                  subtitle,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Color(0xFF51645A),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w900,
-                          color: _ink,
-                        ),
-                      ),
-                      Text(
-                        subtitle,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF51645A),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 18),
-            child,
-          ],
+                  const SizedBox(height: 18),
+                  PageContent(child: child),
+                ],
+              );
+            },
+          ),
         ),
       ),
+    );
+  }
+}
+
+class FeatureIcon extends StatelessWidget {
+  const FeatureIcon(this.icon, this.color, {super.key});
+
+  final IconData icon;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 42,
+      height: 42,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Icon(icon, color: Colors.white, size: 24),
     );
   }
 }
@@ -456,6 +832,8 @@ class _SongPageState extends State<SongPage> {
       eyebrow: 'Belajar jama nyani',
       title: 'Nyanyian Aksara Lampung',
       subtitle: 'Ikuti baris lagu dan kumpulkan poin nyani.',
+      icon: Icons.music_note,
+      accent: _coral,
       child: Column(
         children: [
           Panel(
@@ -517,51 +895,72 @@ class _SongPageState extends State<SongPage> {
             ),
           ),
           const SizedBox(height: 14),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              SpeedChip(
-                'Alon',
-                active: speed.inMilliseconds == 2200,
-                onTap:
-                    () => setState(
-                      () => speed = const Duration(milliseconds: 2200),
-                    ),
-              ),
-              SpeedChip(
-                'Sedeng',
-                active: speed.inMilliseconds == 1600,
-                onTap:
-                    () => setState(
-                      () => speed = const Duration(milliseconds: 1600),
-                    ),
-              ),
-              SpeedChip(
-                'Cepet',
-                active: speed.inMilliseconds == 1050,
-                onTap:
-                    () => setState(
-                      () => speed = const Duration(milliseconds: 1050),
-                    ),
-              ),
-            ],
+          Panel(
+            padding: const EdgeInsets.all(10),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children: [
+                SpeedChip(
+                  'Alon',
+                  active: speed.inMilliseconds == 2200,
+                  onTap:
+                      () => setState(
+                        () => speed = const Duration(milliseconds: 2200),
+                      ),
+                ),
+                SpeedChip(
+                  'Sedeng',
+                  active: speed.inMilliseconds == 1600,
+                  onTap:
+                      () => setState(
+                        () => speed = const Duration(milliseconds: 1600),
+                      ),
+                ),
+                SpeedChip(
+                  'Cepet',
+                  active: speed.inMilliseconds == 1050,
+                  onTap:
+                      () => setState(
+                        () => speed = const Duration(milliseconds: 1050),
+                      ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 14),
-          ...List.generate(
-            lines.length,
-            (i) => ListTile(
-              selected: i == active,
-              selectedTileColor: _sun.withValues(alpha: .28),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+          Panel(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Column(
+              children: List.generate(
+                lines.length,
+                (i) => ListTile(
+                  dense: true,
+                  selected: i == active,
+                  selectedTileColor: _sun.withValues(alpha: .26),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  leading: CircleAvatar(
+                    backgroundColor: i == active ? _leaf : _cream,
+                    child: Text(
+                      lines[i].$1,
+                      style: TextStyle(
+                        color: i == active ? Colors.white : _ink,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  title: Text(
+                    lines[i].$2,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                  onTap: () => setState(() => active = i),
+                ),
               ),
-              leading: CircleAvatar(
-                backgroundColor: i == active ? _leaf : _cream,
-                child: Text(lines[i].$1),
-              ),
-              title: Text(lines[i].$2),
-              onTap: () => setState(() => active = i),
             ),
           ),
         ],
@@ -580,12 +979,50 @@ class WritePage extends StatefulWidget {
 class _WritePageState extends State<WritePage> {
   final letters = aksaraLetters;
   final paths = <Offset?>[];
+  final canvasKey = GlobalKey();
   int index = 0;
   Color penColor = _coral;
   double penSize = 9;
   bool showGuide = true;
+  bool isDrawing = false;
 
   void clear() => setState(paths.clear);
+
+  Offset? _localPoint(PointerEvent event) {
+    final box = canvasKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) return null;
+    final point = box.globalToLocal(event.position);
+    return Offset(
+      point.dx.clamp(0, box.size.width).toDouble(),
+      point.dy.clamp(0, box.size.height).toDouble(),
+    );
+  }
+
+  void _startStroke(PointerDownEvent event) {
+    final point = _localPoint(event);
+    if (point == null) return;
+    setState(() {
+      isDrawing = true;
+      paths
+        ..add(null)
+        ..add(point);
+    });
+  }
+
+  void _extendStroke(PointerMoveEvent event) {
+    if (!isDrawing) return;
+    final point = _localPoint(event);
+    if (point == null) return;
+    setState(() => paths.add(point));
+  }
+
+  void _endStroke(PointerEvent event) {
+    if (!isDrawing) return;
+    setState(() {
+      isDrawing = false;
+      paths.add(null);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -594,6 +1031,12 @@ class _WritePageState extends State<WritePage> {
       eyebrow: 'Latihan tangan',
       title: 'Nulis Aksara Lampung',
       subtitle: 'Tiru bentuk, tarik garis, ulangi sampai lancar.',
+      icon: Icons.edit,
+      accent: _leaf,
+      scrollPhysics:
+          isDrawing
+              ? const NeverScrollableScrollPhysics()
+              : const ClampingScrollPhysics(),
       child: Column(
         children: [
           Panel(
@@ -650,29 +1093,41 @@ class _WritePageState extends State<WritePage> {
             ),
           ),
           const SizedBox(height: 14),
-          AspectRatio(
-            aspectRatio: 1.22,
-            child: GestureDetector(
-              onPanStart:
-                  (details) => setState(() => paths.add(details.localPosition)),
-              onPanUpdate:
-                  (details) => setState(() => paths.add(details.localPosition)),
-              onPanEnd: (_) => setState(() => paths.add(null)),
-              child: CustomPaint(
-                painter: WritingPainter(
-                  paths,
-                  penColor,
-                  penSize,
-                  showGuide ? item.symbol : '',
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: _leaf, width: 2),
-                    borderRadius: BorderRadius.circular(8),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final aspectRatio = constraints.maxWidth < 380 ? 1.0 : 1.22;
+              return AspectRatio(
+                aspectRatio: aspectRatio,
+                child: Listener(
+                  key: canvasKey,
+                  behavior: HitTestBehavior.opaque,
+                  onPointerDown: _startStroke,
+                  onPointerMove: _extendStroke,
+                  onPointerUp: _endStroke,
+                  onPointerCancel: _endStroke,
+                  child: RepaintBoundary(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: CustomPaint(
+                        painter: WritingPainter(
+                          points: paths,
+                          color: penColor,
+                          size: penSize,
+                          guide: showGuide ? item.symbol : '',
+                        ),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: _leaf, width: 2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const SizedBox.expand(),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -748,7 +1203,12 @@ class _WritePageState extends State<WritePage> {
 }
 
 class WritingPainter extends CustomPainter {
-  WritingPainter(this.points, this.color, this.size, this.guide);
+  WritingPainter({
+    required this.points,
+    required this.color,
+    required this.size,
+    required this.guide,
+  });
 
   final List<Offset?> points;
   final Color color;
@@ -789,10 +1249,16 @@ class WritingPainter extends CustomPainter {
         Paint()
           ..color = color
           ..strokeWidth = size
-          ..strokeCap = StrokeCap.round;
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round
+          ..isAntiAlias = true;
     for (var i = 0; i < points.length - 1; i++) {
-      if (points[i] != null && points[i + 1] != null) {
-        canvas.drawLine(points[i]!, points[i + 1]!, paint);
+      final current = points[i];
+      final next = points[i + 1];
+      if (current != null && next != null) {
+        canvas.drawLine(current, next, paint);
+      } else if (current != null && next == null) {
+        canvas.drawCircle(current, size / 2, paint);
       }
     }
   }
@@ -859,6 +1325,8 @@ class _QuizPageState extends State<QuizPage> {
       eyebrow: 'Main sambil mulang',
       title: 'Kuis Aksara Lampung',
       subtitle: 'Pilih jawaban sai pas, kumpul bintang belajar.',
+      icon: Icons.sports_esports,
+      accent: _sky,
       child: Panel(
         child: Column(
           children: [
@@ -964,23 +1432,29 @@ class _MarksPageState extends State<MarksPage> {
       eyebrow: 'Ngerti tanda',
       title: 'Tanda Baca Aksara Lampung',
       subtitle: 'Pahami tanda, bunyi aksara jadi lebih terang.',
+      icon: Icons.menu_book,
+      accent: const Color(0xFF7D5FFF),
       child: Column(
         children: [
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: MediaQuery.sizeOf(context).width > 520 ? 2 : 1,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            childAspectRatio: 2.35,
+          ResponsiveGrid(
+            childAspectRatio: 2.45,
             children:
                 marks
                     .map(
                       (item) => Panel(
-                        child: ListTile(
+                        child: ResponsiveListTile(
                           leading: CircleAvatar(child: Text(item.symbol[0])),
-                          title: Text(item.name),
-                          subtitle: Text('${item.use}\n${item.example}'),
+                          title: Text(
+                            item.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                          subtitle: Text(
+                            '${item.use}\n${item.example}',
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ),
                     )
@@ -1000,10 +1474,12 @@ class _MarksPageState extends State<MarksPage> {
                 Text(
                   mark.name,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 38,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: MediaQuery.sizeOf(context).width < 360 ? 30 : 38,
                     fontWeight: FontWeight.w900,
-                    color: Color(0xFF7D5FFF),
+                    color: const Color(0xFF7D5FFF),
                   ),
                 ),
                 Text(feedback, textAlign: TextAlign.center),
@@ -1060,6 +1536,8 @@ class _LanguagePageState extends State<LanguagePage> {
       eyebrow: 'Mulang bahasa',
       title: 'Bahasa Lampung',
       subtitle: 'Kosakata, angka, warna, percakapan, jama latihan.',
+      icon: Icons.record_voice_over,
+      accent: const Color(0xFFF28C28),
       child: Column(
         children: [
           Wrap(
@@ -1077,29 +1555,31 @@ class _LanguagePageState extends State<LanguagePage> {
                     .toList(),
           ),
           const SizedBox(height: 12),
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: MediaQuery.sizeOf(context).width > 520 ? 2 : 1,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            childAspectRatio: 2.8,
+          ResponsiveGrid(
+            childAspectRatio: 2.65,
             children:
                 words.map((word) {
                   return Panel(
-                    child: ListTile(
+                    child: ResponsiveListTile(
                       leading: CircleAvatar(
                         backgroundColor: _sun,
                         child: Text(word.icon),
                       ),
                       title: Text(
                         word.lampung,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(fontWeight: FontWeight.w900),
                       ),
-                      subtitle: Text(word.meaning),
-                      trailing: FilledButton.tonal(
+                      subtitle: Text(
+                        word.meaning,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      trailing: FilledButton.tonalIcon(
                         onPressed: () => appState.addLanguage(),
-                        child: const Text('Bisa'),
+                        icon: const Icon(Icons.check),
+                        label: const Text('Bisa'),
                       ),
                     ),
                   );
@@ -1217,17 +1697,22 @@ class _LanguagePageState extends State<LanguagePage> {
 }
 
 class Panel extends StatelessWidget {
-  const Panel({required this.child, super.key});
+  const Panel({
+    required this.child,
+    this.padding = const EdgeInsets.all(16),
+    super.key,
+  });
 
   final Widget child;
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: padding,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: .94),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: _ink.withValues(alpha: .08)),
         boxShadow: [
@@ -1254,8 +1739,9 @@ class ScoreChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: .9),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: _ink.withValues(alpha: .06)),
       ),
       child: Text(
         '$label: $value',
